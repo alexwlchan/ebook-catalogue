@@ -65,9 +65,9 @@ def get_tint_color(thumbnail: pathlib.Path) -> str:
     """
     Get the tint color for the thumbnail.  Returns a hex string.
     """
-    output = subprocess.check_output([
-        'dominant_colours', str(thumbnail),  '--compared-to', '#ffffff', '--no-palette'
-    ])
+    output = subprocess.check_output(
+        ["dominant_colours", str(thumbnail), "--compared-to", "#ffffff", "--no-palette"]
+    )
 
     return output.strip().decode("utf8")
 
@@ -77,7 +77,9 @@ def ask_for_book() -> Book:
     print("")
     author = input("Who’s the author?\n> ")
     print("")
-    publication_date = datetime.datetime.strptime(input("When was the book published?\n> "), "%Y-%m-%d").date()
+    publication_date = datetime.datetime.strptime(
+        input("When was the book published?\n> "), "%Y-%m-%d"
+    ).date()
     print("")
     series = input("Is the book part of a series?\n> ") or None
 
@@ -117,11 +119,16 @@ if __name__ == "__main__":
             with open(CATALOGUE_ROOT / "metadata.js") as in_file:
                 contents = in_file.read()
 
-            existing_catalogue = json.loads(contents.strip().strip(';').replace('window.books = ', ''))
+            existing_catalogue = json.loads(
+                contents.strip().strip(";").replace("window.books = ", "")
+            )
         except FileNotFoundError:
             existing_catalogue = []
 
-        stem = pathlib.Path(book_info['author']) / f"{book_info['title']} ({book_info['publication_date'].year})"
+        stem = (
+            pathlib.Path(book_info["author"])
+            / f"{book_info['title']} ({book_info['publication_date'].year})"
+        )
 
         # Copy the file into place
         filename = f"{stem}.{format.lower()}"
@@ -135,13 +142,15 @@ if __name__ == "__main__":
         (CATALOGUE_ROOT / thumbnail).parent.mkdir(exist_ok=True, parents=True)
         shutil.move(thumbnail_path, CATALOGUE_ROOT / thumbnail)
 
-        existing_catalogue.append({
-            **book_info,
-            'format': format,
-            'filename': str(filename),
-            'thumbnail': str(thumbnail),
-            'tint_color': tint_color,
-        })
+        existing_catalogue.append(
+            {
+                **book_info,
+                "format": format,
+                "filename": str(filename),
+                "thumbnail": str(thumbnail),
+                "tint_color": tint_color,
+            }
+        )
 
         js_string = f"window.books = {json.dumps(existing_catalogue, indent=2, sort_keys=True, cls=DatetimeEncoder)};\n"
 
