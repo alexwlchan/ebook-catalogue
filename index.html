@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <title>Alex’s ebook catalogue</title>
+
+  <script>
+    window.onload = function() {
+      const sortedBooks =
+        books
+          .sort(function(a, b) {
+            return a.publication_date == b.publication_date ? 0
+              : a.publication_date > b.publication_date ? -1 : 1;
+          });
+
+      const groupedBooks = Object.groupBy(
+        books, ({ title, author }) => `${title}--${author}`
+      );
+
+      Object.values(groupedBooks)
+        .sort(function(a, b) {
+          return a[0].publication_date == b[0].publication_date ? 0
+            : a[0].publication_date > b[0].publication_date ? -1 : 1;
+        })
+        .forEach(function(files) {
+          const book = files[0];
+
+          const liElement = document.createElement("li");
+
+          liElement.style = `--color: ${book.tint_color}`;
+
+          const linkElement = document.createElement("a");
+          linkElement.href = book.filename;
+
+          const thumbnailElement = document.createElement("img");
+          thumbnailElement.src = book.thumbnail;
+          linkElement.appendChild(thumbnailElement);
+
+          const titleElement = document.createElement("h4");
+          const bookTitle = document.createElement("em");
+          bookTitle.innerText = book.title;
+
+          titleElement.appendChild(bookTitle);
+
+          // const bookAttribution = document.createElement("span");
+          // bookAttribution.innerText = `, by ${book.author} (${book.publication_year})`;
+          // titleElement.appendChild(bookAttribution);
+
+
+          linkElement.appendChild(titleElement);
+
+          const formatElement = document.createElement("div");
+          formatElement.style.fontSize = "0.85em";
+          formatElement.style.lineHeight = "1.6em";
+          formatElement.innerHTML = `by ${book.author} (${book.publication_year})<br/>`;
+
+          // if (book.series !== null) {
+          //   formatElement.innerHTML += `part of ${book.series}<br/>`;
+          // }
+
+          formatElement.innerHTML += files.map(({ format }) => format).sort().join(" / ");
+          linkElement.appendChild(formatElement);
+
+          liElement.appendChild(linkElement);
+
+          document.querySelector("#books").appendChild(liElement);
+        });
+    }
+  </script>
+
+  <style>
+    #books {
+      list-style-type: none;
+      margin:  0;
+      padding: 0;
+    }
+
+    #books li {
+      border: 2px solid var(--color);
+      border-radius: 10px;
+      background-color: white;
+    }
+
+    #books li:not(:last-child) {
+      margin-bottom: 1em;
+    }
+
+    #books li a {
+      padding: 0.75em;
+      text-decoration: none;
+      display: grid;
+      grid-gap: 10px;
+      grid-template-columns: 120px auto;
+      background-color: color-mix(in srgb, var(--color) 10%, transparent);
+    }
+
+    #books li a:hover {
+      background-color: color-mix(in srgb, var(--color) 40%, transparent);
+    }
+
+    #books li a h4 {
+      margin-top: auto;
+      margin-bottom: 3px;
+      font-size: 1.1em;
+      font-weight: normal;
+    }
+
+    #books li a p {
+      margin-top: 0px;
+      margin-bottom: auto;
+    }
+
+    #books li a img {
+      grid-row: 1 / span 2;
+      margin-left:  auto;
+      margin-right: auto;
+      max-width:  120px;
+      max-height: 120px;
+    }
+  </style>
+
+  <script src="metadata.js"></script>
+
+  <link rel="stylesheet" href="https://books.alexwlchan.net/static/style.css">
+</head>
+
+<body>
+  <main>
+    <h1>Alex’s ebook catalogue</h1>
+
+    <ul id="books"></ul>
+  </main>
+</body>
+
+</html>
