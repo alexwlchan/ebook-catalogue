@@ -10,8 +10,6 @@ import sys
 import tempfile
 import typing
 
-from PIL import Image
-
 
 CATALOGUE_ROOT = pathlib.Path("/Volumes/Media (Sapphire)/books")
 
@@ -26,16 +24,10 @@ class BookInfo(typing.TypedDict):
     publication_date: datetime.date
 
 
-class Dimensions(typing.TypedDict):
-    width: int
-    height: int
-
-
 class Book(BookInfo):
     format: Format
     filename: str
     thumbnail: str
-    thumbnail_dimensions: Dimensions
     tint_color: str
 
 
@@ -67,11 +59,6 @@ def get_thumbnail(path: pathlib.Path) -> pathlib.Path:
     thumbnail_path = next(f for f in os.listdir(tmp_dir))
 
     return pathlib.Path(tmp_dir) / thumbnail_path
-
-
-def get_dimensions(thumbnail: pathlib.Path) -> Dimensions:
-    im = Image.open(thumbnail)
-    return {'width': im.width, 'height': im.height}
 
 
 def get_tint_color(thumbnail: pathlib.Path) -> str:
@@ -110,6 +97,9 @@ class DatetimeEncoder(json.JSONEncoder):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        sys.exit(f"Usage: {__file__} [PATH...]")
+
     book_info = ask_for_book()
 
     for path in sys.argv[1:]:
@@ -121,7 +111,6 @@ if __name__ == "__main__":
         format = get_format(path)
 
         thumbnail_path = get_thumbnail(path)
-        thumbnail_dimensions = get_dimensions(thumbnail_path)
         tint_color = get_tint_color(thumbnail_path)
 
         try:
@@ -151,7 +140,6 @@ if __name__ == "__main__":
             'format': format,
             'filename': str(filename),
             'thumbnail': str(thumbnail),
-            'thumbnail_dimensions': thumbnail_dimensions,
             'tint_color': tint_color,
         })
 
