@@ -9,22 +9,55 @@
   <title>Alex’s ebook catalogue</title>
 
   <script>
-    window.onload = function() {
-      const sortedBooks =
-        books
-          .sort(function(a, b) {
-            return a.publication_date == b.publication_date ? 0
-              : a.publication_date > b.publication_date ? -1 : 1;
-          });
+    function sortByPublication(a, b) {
+      return a[0].publication_date == b[0].publication_date ? 0
+        : a[0].publication_date > b[0].publication_date ? -1 : 1;
+    }
+
+    function sortByTitleAtoZ(a, b) {
+      return a[0].title == b[0].title ? 0
+        : a[0].title > b[0].title ? 1 : -1;
+    }
+
+    function sortByTitleZtoA(a, b) {
+      return a[0].title == b[0].title ? 0
+        : a[0].title > b[0].title ? -1 : 1;
+    }
+
+    function allowAll(book) {
+      return true;
+    }
+
+    function renderBooks() {
+      // Choose which sort function to use
+      if (document.querySelector("#sortFilter") !== null) {
+        const sortValue = document.querySelector("#sortFilter").value;
+        if (sortValue === 'publication_date') {
+          sortFunction = sortByPublication;
+        } else if (sortValue === 'title_a_to_z') {
+          sortFunction = sortByTitleAtoZ;
+        } else if (sortValue === 'title_z_to_a') {
+          sortFunction = sortByTitleZtoA;
+        }
+      } else {
+        sortFunction = sortByPublication;
+      }
 
       const groupedBooks = Object.groupBy(
         books, ({ title, author }) => `${title}--${author}`
       );
 
+      document.querySelector("#books").innerHTML = "";
+
       Object.values(groupedBooks)
-        .sort(function(a, b) {
-          return a[0].publication_date == b[0].publication_date ? 0
-            : a[0].publication_date > b[0].publication_date ? -1 : 1;
+        .sort(sortFunction)
+        .filter(function(book) {
+          if (document.querySelector("#authorFilter") != null) {
+            const authorFilter = document.querySelector("#authorFilter").value;
+            return authorFilter === "" || authorFilter === book[0].author;
+          } else {
+            return true;
+          }
         })
         .forEach(function(files) {
           const book = files[0];
@@ -69,6 +102,19 @@
 
           document.querySelector("#books").appendChild(liElement);
         });
+    }
+
+    window.onload = function() {
+      renderBooks(sortByPublication);
+
+      // Fill in the author filter
+      const uniqueAuthors = new Set(books.map(({ author }) => author));
+      Array.from(uniqueAuthors).sort().forEach(function(author) {
+        const optionElement = document.createElement("option");
+        optionElement.value = author;
+        optionElement.innerText = author;
+        document.querySelector("#authorFilter").appendChild(optionElement);
+      })
     }
   </script>
 
@@ -121,6 +167,11 @@
       max-width:  100px;
       max-height: 120px;
     }
+
+    select {
+      font-family: monospace;
+      font-size: 1em;
+    }
   </style>
 
   <script src="metadata.js"></script>
@@ -131,6 +182,20 @@
 <body>
   <main>
     <h1>Alex’s ebook catalogue</h1>
+
+    <p>
+      Sort by:
+      <select id="selectFilter" onchange="renderBooks();">
+        <option value="publication_date">publication date</option>
+        <option value="title_a_to_z">title (A to Z)</option>
+        <option value="title_z_to_a">title (Z to A)</option>
+      </select>
+      /
+      Filter by author:
+      <select id="authorFilter" onchange="renderBooks()">
+        <option value=""></option>
+      </select>
+    </p>
 
     <ul id="books"></ul>
   </main>
